@@ -107,3 +107,62 @@ sanitized_numbers = [normalize_phone(num) for num in raw_numbers]
 print("ЗАВДАННЯ 3:")
 print(sanitized_numbers)
 print()
+
+#region ЗАВДАННЯ 4
+from datetime import datetime, date, timedelta
+#оголошення функції, приймає і повнртає список словників
+def get_upcoming_birthdays (users: list[dict]) -> list[dict]:
+    #отримаємо сьогоднішню дату(без часу)
+    today = datetime.today().date()
+    #задаємо межу +7днів
+    end_date = today + timedelta(days=7)
+    #створюємо список
+    result = []
+    #перебираємо людей
+    for user in users:
+        #дістаємо імя та дату народ.
+        name = user.get("name")
+        birthday_str = user.get("birthday")
+        #Перевіряємо наявність даних
+        if not name or not birthday_str:
+            continue
+        #Переводимо рядок у дату
+        try:
+            birthday = datetime.strptime(birthday_str, "%Y.%m.%d").date()
+        except ValueError:
+            #неправильний формат дати
+            continue
+        #Робимо день народження в цьому році, беремо місяць і день з birthday і ставимо поточний рік
+        try:
+            birthday_this_year = date(today.year, birthday.month, birthday.day)
+        except ValueError:
+            # випадок 29 лютого у невискосному році пропускаємо або вирішемо окремо
+            continue
+        #якщо др минув - беремо наступний рік
+        if birthday_this_year < today:
+            try:
+                birthday_this_year = date(today.year + 1, birthday.month, birthday.day)
+            except ValueError:
+                continue
+        # перевірка чи ДН в 7 днів включно
+        if today <= birthday_this_year <= end_date:
+            # створюємо привітання
+            congrat_date = birthday_this_year
+            # вихідний переносимо на понеділок
+            if congrat_date.weekday() == 5: #субота
+                congrat_date += timedelta(days=2)
+            elif congrat_date.weekday() == 6: # неділя
+                congrat_date +=timedelta(days=1)
+            #додаємо людину у список
+            result.append({
+                "name": name,
+                "congratulation_date": congrat_date.strftime("%Y.%m.%d")
+            })        
+    return result
+#список
+users = [
+        {"name": "John Doe", "birthday": "1985.02.15"},
+        {"name": "Jane Smith", "birthday": "1990.01.27"},
+        ]
+print("ЗАВДАННЯ 4:")
+print(get_upcoming_birthdays(users))
